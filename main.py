@@ -5,9 +5,20 @@ from dbconnection import engine
 from dbconnection import session
 from database_models import ProductDB
 from sqlalchemy.orm import Session 
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import HTTPException
 app=FastAPI()
 
 Base.metadata.create_all(bind=engine)
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def greet():
@@ -55,7 +66,7 @@ def get_product_by_id(id:int,db:Session=Depends(_get_db)):
         return prod_db
 
         
-    return {"message":"product with id not found"}
+    raise HTTPException(404,detail="Product not found")
         
 
 @app.post("/products")
@@ -65,7 +76,7 @@ def add_product_details(product:Product,db:Session=Depends(_get_db)):
     db.commit()
 
     
-    return "product added successfully"
+    return {"message":"product added successfully"}
 
 @app.put("/products/{id}")
 def update_individual_product(id:int,updatedproduct:Product,db:Session=Depends(_get_db)):
